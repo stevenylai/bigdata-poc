@@ -1,0 +1,8 @@
+foo: Hello, World
+bar:
+  baz:
+    one: One Third
+    two: 33.333333
+baz:
+  - Hello
+  - World
