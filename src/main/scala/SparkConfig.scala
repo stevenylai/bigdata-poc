@@ -1,9 +1,29 @@
-import java.util.regex.Matcher
+import java.io.InputStreamReader
+
+import io.circe.ACursor
+import io.circe.yaml.parser
 
 import scala.annotation.tailrec
 import scala.util.matching.Regex
 
-object Env {
+class SparkConfig(stream: java.io.InputStream) {
+  val env = System.getenv()
+  val settings = parser.parse(new InputStreamReader(stream)) match {
+    case Right(d) => d
+    case Left(e) => throw e
+  }
+
+  def setEnv(name: String, value: String) = {
+    env.put(name, value)
+  }
+  def getConfigAsString(path: String *) = {
+    var cursor: ACursor = settings.hcursor
+    val it = path.iterator
+    while (it.hasNext) {
+      cursor = cursor.downField(it.next())
+    }
+
+  }
   def expand(value: String) = {
     val buf = new StringBuilder()
     val pattern = new Regex("\\$[a-zA-Z_][a-zA-Z_0-9]*")
@@ -17,10 +37,7 @@ object Env {
         val key = matcher.group()
         val namePattern = new Regex("[a-zA-Z_][a-zA-Z_0-9]*")
         val varValue = namePattern.findFirstMatchIn(key) match {
-          case Some(matched) => {
-            val expanded = System.getenv(matched.group(0))
-            if (expanded == null) key else expanded
-          }
+          case Some(matched) => env.getOrDefault(matched.group(0), key)
           case _ => key
         }
         buf.append(varValue)

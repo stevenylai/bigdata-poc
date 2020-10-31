@@ -2,18 +2,18 @@ import org.junit.Test
 
 class YamlSuite {
   @Test def `parse yaml`: Unit = {
-    val config = Main.getConfig()
-    val res = config.hcursor
+    val config = Main.sparkConfig
+    val res = config.settings.hcursor
       .downField("bar")
       .downField("baz")
       .downField("one")
-      .as[String].getOrElse("aa")
+      .as[String].right.get
     //println(config)
     println(res)
   }
   @Test def `interpolation`: Unit = {
-    val path = Env.expand("xxxx$PATH/xxxx$abc/aer")
+    val path = Main.sparkConfig.expand("xxxx$PATH/xxxx$abc/aer")
     println(path)
-    println(Env.expand("$xxxx"))
+    println(Main.sparkConfig.expand("$xxxx"))
   }
 }
